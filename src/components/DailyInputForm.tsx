@@ -1,10 +1,28 @@
 import { useState } from "react";
-import { CATEGORIES, WEATHER_PRESETS, createEmptyEntry } from "../types";
+import { CATEGORIES, WEATHER_PRESETS, emptyDayContext } from "../types";
 import type { Category, DailyEntry } from "../types";
 import { formatDateJP, todayStr } from "../lib/date";
 import { formatYen } from "../lib/format";
 import type { Location } from "../lib/weather";
 import AutoFetchWeatherButton from "./AutoFetchWeatherButton";
+
+// 入力中は「未入力」と「0」を区別できるよう、金額はnull許容の下書き状態として扱う。
+// 保存時にnullを0へ変換してDailyEntryへ確定させる。
+type DraftItem = { salesAmount: number | null; wasteAmount: number | null };
+type DraftItemMap = Record<Category, DraftItem>;
+type DraftEntry = Omit<DailyEntry, "items"> & { items: DraftItemMap };
+
+function emptyDraftEntry(date: string): DraftEntry {
+  return {
+    date,
+    ...emptyDayContext(),
+    memo: "",
+    items: CATEGORIES.reduce((acc, cat) => {
+      acc[cat] = { salesAmount: null, wasteAmount: null };
+      return acc;
+    }, {} as DraftItemMap),
+  };
+}
 
 interface Props {
   existingDates: string[];
@@ -15,12 +33,12 @@ interface Props {
 }
 
 export default function DailyInputForm({ existingDates, onSave, initialEntry, onCancelEdit, location }: Props) {
-  const [entry, setEntry] = useState<DailyEntry>(initialEntry ?? createEmptyEntry(todayStr()));
+  const [entry, setEntry] = useState<DraftEntry>(initialEntry ?? emptyDraftEntry(todayStr()));
 
   const isEditing = !!initialEntry;
   const isDuplicate = !isEditing && existingDates.includes(entry.date);
 
-  function updateItem(cat: Category, field: "salesAmount" | "wasteAmount", value: number) {
+  function updateItem(cat: Category, field: "salesAmount" | "wasteAmount", value: number | null) {
     setEntry((prev) => ({
       ...prev,
       items: { ...prev.items, [cat]: { ...prev.items[cat], [field]: value } },
@@ -30,8 +48,16 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (isDuplicate) return;
-    onSave(entry);
-    if (!isEditing) setEntry(createEmptyEntry(todayStr()));
+    const finalEntry: DailyEntry = {
+      ...entry,
+      items: CATEGORIES.reduce((acc, cat) => {
+        const draft = entry.items[cat];
+        acc[cat] = { salesAmount: draft.salesAmount ?? 0, wasteAmount: draft.wasteAmount ?? 0 };
+        return acc;
+      }, {} as DailyEntry["items"]),
+    };
+    onSave(finalEntry);
+    if (!isEditing) setEntry(emptyDraftEntry(todayStr()));
   }
 
   const totalSales = CATEGORIES.reduce((s, c) => s + (entry.items[c]?.salesAmount ?? 0), 0);
@@ -149,27 +175,36 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
         <tbody>
           {CATEGORIES.map((cat) => {
             const item = entry.items[cat];
-            const rate =
-              item.salesAmount + item.wasteAmount > 0
-                ? item.wasteAmount / (item.salesAmount + item.wasteAmount)
-                : 0;
+            const sales = item.salesAmount ?? 0;
+            const waste = item.wasteAmount ?? 0;
+            const rate = sales + waste > 0 ? waste / (sales + waste) : 0;
             return (
               <tr key={cat}>
                 <td>{cat}</td>
                 <td>
                   <input
-                    type="number"
-                    min={0}
-                    value={item.salesAmount}
-                    onChange={(e) => updateItem(cat, "salesAmount", Number(e.target.value))}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="0"
+                    value={item.salesAmount ?? ""}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9]/g, "");
+                      updateItem(cat, "salesAmount", raw === "" ? null : Number(raw));
+                    }}
                   />
                 </td>
                 <td>
                   <input
-                    type="number"
-                    min={0}
-                    value={item.wasteAmount}
-                    onChange={(e) => updateItem(cat, "wasteAmount", Number(e.target.value))}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="0"
+                    value={item.wasteAmount ?? ""}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9]/g, "");
+                      updateItem(cat, "wasteAmount", raw === "" ? null : Number(raw));
+                    }}
                   />
                 </td>
                 <td className="muted">{(rate * 100).toFixed(1)}%</td>

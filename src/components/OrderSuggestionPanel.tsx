@@ -145,12 +145,15 @@ export default function OrderSuggestionPanel({ entries, settings, onSettingsChan
                 <td>{formatYen(s.predictedAmount)}</td>
                 <td>
                   <input
-                    type="number"
-                    min={0}
-                    max={90}
-                    step={1}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                     value={Math.round(s.targetWasteRate * 100)}
-                    onChange={(e) => updateTargetRate(s.category, Number(e.target.value) / 100)}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9]/g, "");
+                      const pct = raw === "" ? 0 : Math.min(90, Number(raw));
+                      updateTargetRate(s.category, pct / 100);
+                    }}
                     style={{ width: "4.5rem" }}
                   />
                   %
