@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { CATEGORIES, WEATHER_PRESETS, emptyDayContext } from "../types";
 import type { Category, DailyEntry } from "../types";
 import { formatDateJP, todayStr } from "../lib/date";
@@ -32,11 +32,30 @@ interface Props {
   location: Location | null;
 }
 
+const AMOUNT_INPUT_COUNT = CATEGORIES.length * 2;
+
 export default function DailyInputForm({ existingDates, onSave, initialEntry, onCancelEdit, location }: Props) {
   const [entry, setEntry] = useState<DraftEntry>(initialEntry ?? emptyDraftEntry(todayStr()));
+  const amountTableRef = useRef<HTMLTableElement>(null);
 
   const isEditing = !!initialEntry;
   const isDuplicate = !isEditing && existingDates.includes(entry.date);
+
+  // テンキーの「次へ」で連続入力できるよう、Enterで次の金額欄へフォーカスを送る。
+  // 最後の欄はキーボードを閉じるだけにする(誤送信を避けるため自動保存はしない)。
+  function handleAmountKeyDown(e: React.KeyboardEvent<HTMLInputElement>, index: number) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (index >= AMOUNT_INPUT_COUNT - 1) {
+      e.currentTarget.blur();
+      return;
+    }
+    const next = amountTableRef.current?.querySelector<HTMLInputElement>(
+      `[data-amount-index="${index + 1}"]`
+    );
+    next?.focus();
+    next?.select();
+  }
 
   function updateItem(cat: Category, field: "salesAmount" | "wasteAmount", value: number | null) {
     setEntry((prev) => ({
@@ -163,7 +182,7 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
         }
       />
 
-      <table className="input-table">
+      <table className="input-table" ref={amountTableRef}>
         <thead>
           <tr>
             <th>カテゴリ</th>
@@ -173,11 +192,13 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
           </tr>
         </thead>
         <tbody>
-          {CATEGORIES.map((cat) => {
+          {CATEGORIES.map((cat, i) => {
             const item = entry.items[cat];
             const sales = item.salesAmount ?? 0;
             const waste = item.wasteAmount ?? 0;
             const rate = sales + waste > 0 ? waste / (sales + waste) : 0;
+            const salesIndex = i * 2;
+            const wasteIndex = i * 2 + 1;
             return (
               <tr key={cat}>
                 <td>{cat}</td>
@@ -186,12 +207,15 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
+                    enterKeyHint={salesIndex === AMOUNT_INPUT_COUNT - 1 ? "done" : "next"}
+                    data-amount-index={salesIndex}
                     placeholder="0"
                     value={item.salesAmount ?? ""}
                     onChange={(e) => {
                       const raw = e.target.value.replace(/[^0-9]/g, "");
                       updateItem(cat, "salesAmount", raw === "" ? null : Number(raw));
                     }}
+                    onKeyDown={(e) => handleAmountKeyDown(e, salesIndex)}
                   />
                 </td>
                 <td>
@@ -199,12 +223,15 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
+                    enterKeyHint={wasteIndex === AMOUNT_INPUT_COUNT - 1 ? "done" : "next"}
+                    data-amount-index={wasteIndex}
                     placeholder="0"
                     value={item.wasteAmount ?? ""}
                     onChange={(e) => {
                       const raw = e.target.value.replace(/[^0-9]/g, "");
                       updateItem(cat, "wasteAmount", raw === "" ? null : Number(raw));
                     }}
+                    onKeyDown={(e) => handleAmountKeyDown(e, wasteIndex)}
                   />
                 </td>
                 <td className="muted">{(rate * 100).toFixed(1)}%</td>
