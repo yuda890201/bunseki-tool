@@ -39,6 +39,33 @@ export function deleteEntry(entries: DailyEntry[], date: string): DailyEntry[] {
   return next;
 }
 
+export interface ImportResult {
+  entries: DailyEntry[];
+  imported: number;
+  skipped: number;
+}
+
+export function importEntries(
+  existing: DailyEntry[],
+  imported: DailyEntry[],
+  overwrite: boolean
+): ImportResult {
+  const map = new Map(existing.map((e) => [e.date, e]));
+  let importedCount = 0;
+  let skipped = 0;
+  for (const entry of imported) {
+    if (map.has(entry.date) && !overwrite) {
+      skipped++;
+      continue;
+    }
+    map.set(entry.date, entry);
+    importedCount++;
+  }
+  const next = [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
+  saveEntries(next);
+  return { entries: next, imported: importedCount, skipped };
+}
+
 export function loadSettings(): AnalysisSettings {
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);

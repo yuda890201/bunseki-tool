@@ -1,16 +1,18 @@
 import { useState } from "react";
 import "./App.css";
 import type { DailyEntry } from "./types";
-import { deleteEntry, loadEntries, loadSettings, saveSettings, upsertEntry } from "./lib/storage";
+import { deleteEntry, importEntries, loadEntries, loadSettings, saveSettings, upsertEntry } from "./lib/storage";
 import DailyInputForm from "./components/DailyInputForm";
 import DataTable from "./components/DataTable";
 import RegressionPanel from "./components/RegressionPanel";
 import OrderSuggestionPanel from "./components/OrderSuggestionPanel";
+import ImportPanel from "./components/ImportPanel";
 
-type Tab = "input" | "list" | "analysis" | "order";
+type Tab = "input" | "import" | "list" | "analysis" | "order";
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "input", label: "入力" },
+  { id: "import", label: "インポート" },
   { id: "list", label: "一覧" },
   { id: "analysis", label: "分析" },
   { id: "order", label: "発注提案" },
@@ -40,6 +42,12 @@ export default function App() {
   function handleSettingsChange(next: typeof settings) {
     setSettings(next);
     saveSettings(next);
+  }
+
+  function handleImport(imported: DailyEntry[], overwrite: boolean) {
+    const result = importEntries(entries, imported, overwrite);
+    setEntries(result.entries);
+    return { imported: result.imported, skipped: result.skipped };
   }
 
   return (
@@ -74,6 +82,7 @@ export default function App() {
             onCancelEdit={() => setEditing(undefined)}
           />
         )}
+        {tab === "import" && <ImportPanel existingEntries={entries} onImport={handleImport} />}
         {tab === "list" && <DataTable entries={entries} onEdit={handleEdit} onDelete={handleDelete} />}
         {tab === "analysis" && (
           <RegressionPanel entries={entries} settings={settings} onSettingsChange={handleSettingsChange} />

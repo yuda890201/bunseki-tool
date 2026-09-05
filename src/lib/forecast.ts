@@ -13,7 +13,7 @@ export interface OrderInput {
 export interface CategoryForecast {
   category: Category;
   method: "regression" | "weekday_average" | "insufficient_data";
-  predictedSales: number;
+  predictedAmount: number; // 予測売上金額(円)
   sampleSize: number;
   r2: number | null;
   note: string;
@@ -26,7 +26,7 @@ function weekdayAverage(entries: DailyEntry[], category: Category, dateStr: stri
   const sameWeekday = entries.filter((e) => weekdayIndex(e.date) === idx);
   const pool = sameWeekday.length >= 3 ? sameWeekday : entries;
   if (pool.length === 0) return 0;
-  const sum = pool.reduce((s, e) => s + e.items[category].sales, 0);
+  const sum = pool.reduce((s, e) => s + e.items[category].salesAmount, 0);
   return sum / pool.length;
 }
 
@@ -40,7 +40,7 @@ export function forecastCategory(
     return {
       category,
       method: "insufficient_data",
-      predictedSales: 0,
+      predictedAmount: 0,
       sampleSize: 0,
       r2: null,
       note: "実績データがありません",
@@ -52,7 +52,7 @@ export function forecastCategory(
 
   if (design.usedEntries.length >= Math.max(MIN_ROWS_FOR_REGRESSION, k + 3)) {
     try {
-      const y = targetValues(design.usedEntries, category, "sales");
+      const y = targetValues(design.usedEntries, category, "salesAmount");
       const X = withIntercept(design.rows);
       const result = runOLS(X, y, ["切片", ...design.featureNames]);
       const minDate = design.usedEntries[0].date;
@@ -64,7 +64,7 @@ export function forecastCategory(
       return {
         category,
         method: "regression",
-        predictedSales: Math.max(0, predicted),
+        predictedAmount: Math.max(0, predicted),
         sampleSize: result.n,
         r2: result.r2,
         note: `回帰モデル(n=${result.n}, R²=${result.r2.toFixed(2)})による予測`,
@@ -78,7 +78,7 @@ export function forecastCategory(
   return {
     category,
     method: entries.length > 0 ? "weekday_average" : "insufficient_data",
-    predictedSales: avg,
+    predictedAmount: avg,
     sampleSize: entries.length,
     r2: null,
     note: "データ不足のため同一曜日の平均実績から算出",
@@ -87,8 +87,8 @@ export function forecastCategory(
 
 export interface OrderSuggestion extends CategoryForecast {
   targetWasteRate: number;
-  suggestedOrder: number;
-  expectedWaste: number;
+  suggestedOrderAmount: number; // 推奨発注金額(円)
+  expectedWasteAmount: number; // 予測廃棄金額(円)
 }
 
 export function suggestOrder(
@@ -100,7 +100,7 @@ export function suggestOrder(
   const forecast = forecastCategory(entries, category, settings, input);
   const targetRate = settings.targetWasteRate[category] ?? 0.05;
   const denom = Math.max(1e-6, 1 - targetRate);
-  const suggestedOrder = Math.ceil(forecast.predictedSales / denom);
-  const expectedWaste = Math.max(0, suggestedOrder - forecast.predictedSales);
-  return { ...forecast, targetWasteRate: targetRate, suggestedOrder, expectedWaste };
+  const suggestedOrderAmount = Math.ceil(forecast.predictedAmount / denom);
+  const expectedWasteAmount = Math.max(0, suggestedOrderAmount - forecast.predictedAmount);
+  return { ...forecast, targetWasteRate: targetRate, suggestedOrderAmount, expectedWasteAmount };
 }

@@ -73,7 +73,7 @@ export function withIntercept(rows: number[][]): number[][] {
 export function targetValues(
   entries: DailyEntry[],
   category: Category | "合計",
-  kind: "sales" | "waste"
+  kind: "salesAmount" | "wasteAmount"
 ): number[] {
   return entries.map((e) => {
     if (category === "合計") {

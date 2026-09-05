@@ -14,8 +14,8 @@ export const WEATHER_OPTIONS = ["晴れ", "曇り", "雨", "雪"] as const;
 export type Weather = (typeof WEATHER_OPTIONS)[number] | "";
 
 export interface ItemPerformance {
-  sales: number; // 販売数
-  waste: number; // 廃棄数
+  salesAmount: number; // 売上金額(円)
+  wasteAmount: number; // 廃棄金額(円)
 }
 
 export type ItemPerformanceMap = Record<Category, ItemPerformance>;
@@ -33,7 +33,7 @@ export const WEEKDAYS_JP = ["日", "月", "火", "水", "木", "金", "土"] as 
 
 export function emptyItemMap(): ItemPerformanceMap {
   return CATEGORIES.reduce((acc, cat) => {
-    acc[cat] = { sales: 0, waste: 0 };
+    acc[cat] = { salesAmount: 0, wasteAmount: 0 };
     return acc;
   }, {} as ItemPerformanceMap);
 }

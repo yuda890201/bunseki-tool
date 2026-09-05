@@ -20,11 +20,11 @@ interface Props {
   onSettingsChange: (settings: AnalysisSettings) => void;
 }
 
-type TargetKind = "sales" | "waste";
+type TargetKind = "salesAmount" | "wasteAmount";
 
 export default function RegressionPanel({ entries, settings, onSettingsChange }: Props) {
   const [category, setCategory] = useState<Category | "合計">("合計");
-  const [kind, setKind] = useState<TargetKind>("sales");
+  const [kind, setKind] = useState<TargetKind>("salesAmount");
 
   const design = useMemo(() => buildDesignMatrix(entries, settings), [entries, settings]);
 
@@ -56,7 +56,7 @@ export default function RegressionPanel({ entries, settings, onSettingsChange }:
     <div className="card">
       <h2>重回帰分析</h2>
       <p className="muted">
-        曜日・気温・天気・催事の有無などを説明変数として、販売数(または廃棄数)への影響を分析します。
+        曜日・気温・天気・催事の有無などを説明変数として、売上金額(または廃棄金額)への影響を分析します。
       </p>
 
       <div className="field-row">
@@ -74,8 +74,8 @@ export default function RegressionPanel({ entries, settings, onSettingsChange }:
         <label>
           目的変数
           <select value={kind} onChange={(e) => setKind(e.target.value as TargetKind)}>
-            <option value="sales">販売数</option>
-            <option value="waste">廃棄数</option>
+            <option value="salesAmount">売上金額</option>
+            <option value="wasteAmount">廃棄金額</option>
           </select>
         </label>
       </div>

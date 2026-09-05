@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { CATEGORIES } from "../types";
 import type { DailyEntry } from "../types";
 import { formatDateJP } from "../lib/date";
+import { formatYen } from "../lib/format";
 
 interface Props {
   entries: DailyEntry[];
@@ -36,8 +37,8 @@ export default function DataTable({ entries, onEdit, onDelete }: Props) {
           <tr>
             {[...CATEGORIES, "合計"].map((cat) => (
               <Fragment key={cat}>
-                <th>販売</th>
-                <th>廃棄</th>
+                <th>売上金額</th>
+                <th>廃棄金額</th>
                 <th>廃棄率</th>
               </Fragment>
             ))}
@@ -45,8 +46,8 @@ export default function DataTable({ entries, onEdit, onDelete }: Props) {
         </thead>
         <tbody>
           {sorted.map((entry) => {
-            const totalSales = CATEGORIES.reduce((s, c) => s + entry.items[c].sales, 0);
-            const totalWaste = CATEGORIES.reduce((s, c) => s + entry.items[c].waste, 0);
+            const totalSales = CATEGORIES.reduce((s, c) => s + entry.items[c].salesAmount, 0);
+            const totalWaste = CATEGORIES.reduce((s, c) => s + entry.items[c].wasteAmount, 0);
             const totalRate = totalSales + totalWaste > 0 ? totalWaste / (totalSales + totalWaste) : 0;
             return (
               <tr key={entry.date}>
@@ -56,17 +57,20 @@ export default function DataTable({ entries, onEdit, onDelete }: Props) {
                 <td>{entry.event ? "○" : ""}</td>
                 {CATEGORIES.map((cat) => {
                   const item = entry.items[cat];
-                  const rate = item.sales + item.waste > 0 ? item.waste / (item.sales + item.waste) : 0;
+                  const rate =
+                    item.salesAmount + item.wasteAmount > 0
+                      ? item.wasteAmount / (item.salesAmount + item.wasteAmount)
+                      : 0;
                   return (
                     <Fragment key={cat}>
-                      <td>{item.sales}</td>
-                      <td>{item.waste}</td>
+                      <td>{formatYen(item.salesAmount)}</td>
+                      <td>{formatYen(item.wasteAmount)}</td>
                       <td className="muted">{(rate * 100).toFixed(0)}%</td>
                     </Fragment>
                   );
                 })}
-                <td>{totalSales}</td>
-                <td>{totalWaste}</td>
+                <td>{formatYen(totalSales)}</td>
+                <td>{formatYen(totalWaste)}</td>
                 <td className="muted">{(totalRate * 100).toFixed(0)}%</td>
                 <td className="actions">
                   <button type="button" onClick={() => onEdit(entry)}>

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { CATEGORIES, WEATHER_OPTIONS } from "../types";
 import type { AnalysisSettings, DailyEntry, Weather } from "../types";
 import { formatDateJP, tomorrowStr } from "../lib/date";
+import { formatYen } from "../lib/format";
 import { suggestOrder } from "../lib/forecast";
 
 interface Props {
@@ -34,7 +35,7 @@ export default function OrderSuggestionPanel({ entries, settings, onSettingsChan
       <h2>発注提案</h2>
       <p className="muted">
         分析結果(データが十分な場合は重回帰モデル、不足時は同一曜日の平均実績)から、
-        指定した目標廃棄率になるように発注数を提案します。
+        指定した目標廃棄率になるように発注金額を提案します。
       </p>
 
       <div className="field-row">
@@ -85,10 +86,10 @@ export default function OrderSuggestionPanel({ entries, settings, onSettingsChan
           <thead>
             <tr>
               <th>カテゴリ</th>
-              <th>予測販売数</th>
+              <th>予測売上金額</th>
               <th>目標廃棄率</th>
-              <th>推奨発注数</th>
-              <th>予測廃棄数</th>
+              <th>推奨発注金額</th>
+              <th>予測廃棄金額</th>
               <th>算出方法</th>
             </tr>
           </thead>
@@ -96,7 +97,7 @@ export default function OrderSuggestionPanel({ entries, settings, onSettingsChan
             {suggestions.map((s) => (
               <tr key={s.category}>
                 <td>{s.category}</td>
-                <td>{s.predictedSales.toFixed(1)}</td>
+                <td>{formatYen(s.predictedAmount)}</td>
                 <td>
                   <input
                     type="number"
@@ -109,8 +110,8 @@ export default function OrderSuggestionPanel({ entries, settings, onSettingsChan
                   />
                   %
                 </td>
-                <td className="strong">{s.suggestedOrder}</td>
-                <td>{s.expectedWaste.toFixed(1)}</td>
+                <td className="strong">{formatYen(s.suggestedOrderAmount)}</td>
+                <td>{formatYen(s.expectedWasteAmount)}</td>
                 <td className="muted small">{s.note}</td>
               </tr>
             ))}

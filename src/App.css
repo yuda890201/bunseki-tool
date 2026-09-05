@@ -152,6 +152,15 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.import-success {
+  color: #065f46;
+  background: #ecfdf5;
+  border: 1px solid #6ee7b7;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  margin: 0.5rem 0;
+}
+
 .warning {
   color: #b45309;
   background: #fffbeb;
