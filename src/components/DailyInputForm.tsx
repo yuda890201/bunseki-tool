@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CATEGORIES, WEATHER_PRESETS, emptyDayContext } from "../types";
 import type { Category, DailyEntry } from "../types";
 import { formatDateJP, todayStr } from "../lib/date";
@@ -37,11 +37,53 @@ const AMOUNT_INPUT_COUNT = CATEGORIES.length * 2;
 export default function DailyInputForm({ existingDates, onSave, initialEntry, onCancelEdit, location }: Props) {
   const [entry, setEntry] = useState<DraftEntry>(initialEntry ?? emptyDraftEntry(todayStr()));
   const amountTableRef = useRef<HTMLTableElement>(null);
+  const [activeAmountIndex, setActiveAmountIndex] = useState<number | null>(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const blurTimer = useRef<number | null>(null);
 
   const isEditing = !!initialEntry;
   const isDuplicate = !isEditing && existingDates.includes(entry.date);
 
-  // テンキーの「次へ」で連続入力できるよう、Enterで次の金額欄へフォーカスを送る。
+  // iOSのテンキーはEnterキー自体が存在せず、上部のく/だけのアクセサリバーは
+  // JSからキー入力として検知できないため、それとは別に自前の「次へ」バーを
+  // キーボードの直上(visualViewport基準)に表示して確実に次項目へ移動できるようにする。
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    function update() {
+      if (!vv) return;
+      const offset = window.innerHeight - vv.height - vv.offsetTop;
+      setKeyboardOffset(Math.max(0, Math.round(offset)));
+    }
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+
+  function focusAmountIndex(index: number) {
+    const el = amountTableRef.current?.querySelector<HTMLInputElement>(`[data-amount-index="${index}"]`);
+    el?.focus();
+    el?.select();
+  }
+
+  function handleAmountFocus(index: number) {
+    if (blurTimer.current !== null) {
+      window.clearTimeout(blurTimer.current);
+      blurTimer.current = null;
+    }
+    setActiveAmountIndex(index);
+  }
+
+  function handleAmountBlur() {
+    blurTimer.current = window.setTimeout(() => setActiveAmountIndex(null), 150);
+  }
+
+  // テンキーの「次へ」で連続入力できるよう、Enterで次の金額欄へフォーカスを送る
+  // (Androidなど、テンキー自体にEnter相当のキーがある端末向け)。
   // 最後の欄はキーボードを閉じるだけにする(誤送信を避けるため自動保存はしない)。
   function handleAmountKeyDown(e: React.KeyboardEvent<HTMLInputElement>, index: number) {
     if (e.key !== "Enter") return;
@@ -50,11 +92,21 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
       e.currentTarget.blur();
       return;
     }
-    const next = amountTableRef.current?.querySelector<HTMLInputElement>(
-      `[data-amount-index="${index + 1}"]`
-    );
-    next?.focus();
-    next?.select();
+    focusAmountIndex(index + 1);
+  }
+
+  function handleToolbarNext() {
+    if (activeAmountIndex === null) return;
+    if (activeAmountIndex >= AMOUNT_INPUT_COUNT - 1) {
+      (document.activeElement as HTMLElement | null)?.blur();
+      return;
+    }
+    focusAmountIndex(activeAmountIndex + 1);
+  }
+
+  function handleToolbarPrev() {
+    if (activeAmountIndex === null || activeAmountIndex <= 0) return;
+    focusAmountIndex(activeAmountIndex - 1);
   }
 
   function updateItem(cat: Category, field: "salesAmount" | "wasteAmount", value: number | null) {
@@ -216,6 +268,8 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
                       updateItem(cat, "salesAmount", raw === "" ? null : Number(raw));
                     }}
                     onKeyDown={(e) => handleAmountKeyDown(e, salesIndex)}
+                    onFocus={() => handleAmountFocus(salesIndex)}
+                    onBlur={handleAmountBlur}
                   />
                 </td>
                 <td>
@@ -232,6 +286,8 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
                       updateItem(cat, "wasteAmount", raw === "" ? null : Number(raw));
                     }}
                     onKeyDown={(e) => handleAmountKeyDown(e, wasteIndex)}
+                    onFocus={() => handleAmountFocus(wasteIndex)}
+                    onBlur={handleAmountBlur}
                   />
                 </td>
                 <td className="muted">{(rate * 100).toFixed(1)}%</td>
@@ -269,6 +325,23 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
           </button>
         )}
       </div>
+
+      {activeAmountIndex !== null && (
+        <div className="keypad-toolbar" style={{ bottom: keyboardOffset }}>
+          <button
+            type="button"
+            className="secondary"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={handleToolbarPrev}
+            disabled={activeAmountIndex <= 0}
+          >
+            ◀ 前へ
+          </button>
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={handleToolbarNext}>
+            {activeAmountIndex >= AMOUNT_INPUT_COUNT - 1 ? "完了" : "次へ ▶"}
+          </button>
+        </div>
+      )}
     </form>
   );
 }
