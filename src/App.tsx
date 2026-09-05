@@ -18,6 +18,7 @@ import RegressionPanel from "./components/RegressionPanel";
 import OrderSuggestionPanel from "./components/OrderSuggestionPanel";
 import ImportPanel from "./components/ImportPanel";
 import LocationBar from "./components/LocationBar";
+import SpaceInvader from "./components/SpaceInvader";
 
 type Tab = "input" | "import" | "list" | "analysis" | "order";
 
@@ -70,7 +71,13 @@ export default function App() {
   return (
     <div className="app-shell">
       <header>
-        <h1>中食 実績分析ツール</h1>
+        <div className="title-row">
+          <SpaceInvader size={30} />
+          <h1>
+            中食 実績分析ツール<span className="cursor-blink">_</span>
+          </h1>
+          <SpaceInvader size={30} className="magenta" />
+        </div>
         <p className="muted">日々の販売・廃棄実績を記録し、重回帰分析と発注提案に活用します</p>
         <LocationBar location={location} onChange={handleLocationChange} />
       </header>

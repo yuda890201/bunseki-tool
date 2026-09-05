@@ -162,13 +162,13 @@ export default function RegressionPanel({ entries, settings, onSettingsChange }:
           <h3>実績 vs 予測</h3>
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 11 }} />
-              <YAxis tick={{ fontSize: 11 }} />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="実績" stroke="#2563eb" dot={false} />
-              <Line type="monotone" dataKey="予測" stroke="#f97316" dot={false} strokeDasharray="4 3" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#22303f" />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#7d8998" }} stroke="#22303f" />
+              <YAxis tick={{ fontSize: 11, fill: "#7d8998" }} stroke="#22303f" />
+              <Tooltip contentStyle={{ background: "#10151f", border: "1px solid #22303f", color: "#d7dce5" }} />
+              <Legend wrapperStyle={{ color: "#d7dce5" }} />
+              <Line type="monotone" dataKey="実績" stroke="#22d3ee" dot={false} />
+              <Line type="monotone" dataKey="予測" stroke="#ff2d95" dot={false} strokeDasharray="4 3" />
             </LineChart>
           </ResponsiveContainer>
         </>
