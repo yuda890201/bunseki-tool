@@ -3,15 +3,18 @@ import { CATEGORIES, WEATHER_PRESETS, createEmptyEntry } from "../types";
 import type { Category, DailyEntry } from "../types";
 import { formatDateJP, todayStr } from "../lib/date";
 import { formatYen } from "../lib/format";
+import type { Location } from "../lib/weather";
+import AutoFetchWeatherButton from "./AutoFetchWeatherButton";
 
 interface Props {
   existingDates: string[];
   onSave: (entry: DailyEntry) => void;
   initialEntry?: DailyEntry;
   onCancelEdit?: () => void;
+  location: Location | null;
 }
 
-export default function DailyInputForm({ existingDates, onSave, initialEntry, onCancelEdit }: Props) {
+export default function DailyInputForm({ existingDates, onSave, initialEntry, onCancelEdit, location }: Props) {
   const [entry, setEntry] = useState<DailyEntry>(initialEntry ?? createEmptyEntry(todayStr()));
 
   const isEditing = !!initialEntry;
@@ -120,6 +123,19 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
           <option key={w} value={w} />
         ))}
       </datalist>
+
+      <AutoFetchWeatherButton
+        location={location}
+        date={entry.date}
+        onFetched={(w) =>
+          setEntry((prev) => ({
+            ...prev,
+            temperatureLow: w.temperatureLow,
+            temperatureHigh: w.temperatureHigh,
+            weather: w.weather || prev.weather,
+          }))
+        }
+      />
 
       <table className="input-table">
         <thead>

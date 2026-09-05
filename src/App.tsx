@@ -1,12 +1,23 @@
 import { useState } from "react";
 import "./App.css";
 import type { DailyEntry } from "./types";
-import { deleteEntry, importEntries, loadEntries, loadSettings, saveSettings, upsertEntry } from "./lib/storage";
+import {
+  deleteEntry,
+  importEntries,
+  loadEntries,
+  loadLocation,
+  loadSettings,
+  saveLocation,
+  saveSettings,
+  upsertEntry,
+} from "./lib/storage";
+import type { Location } from "./lib/weather";
 import DailyInputForm from "./components/DailyInputForm";
 import DataTable from "./components/DataTable";
 import RegressionPanel from "./components/RegressionPanel";
 import OrderSuggestionPanel from "./components/OrderSuggestionPanel";
 import ImportPanel from "./components/ImportPanel";
+import LocationBar from "./components/LocationBar";
 
 type Tab = "input" | "import" | "list" | "analysis" | "order";
 
@@ -23,6 +34,12 @@ export default function App() {
   const [settings, setSettings] = useState(() => loadSettings());
   const [tab, setTab] = useState<Tab>("input");
   const [editing, setEditing] = useState<DailyEntry | undefined>(undefined);
+  const [location, setLocation] = useState<Location | null>(() => loadLocation());
+
+  function handleLocationChange(next: Location) {
+    setLocation(next);
+    saveLocation(next);
+  }
 
   function handleSave(entry: DailyEntry) {
     setEntries(upsertEntry(entries, entry));
@@ -55,6 +72,7 @@ export default function App() {
       <header>
         <h1>中食 実績分析ツール</h1>
         <p className="muted">日々の販売・廃棄実績を記録し、重回帰分析と発注提案に活用します</p>
+        <LocationBar location={location} onChange={handleLocationChange} />
       </header>
 
       <nav className="tabs">
@@ -80,6 +98,7 @@ export default function App() {
             onSave={handleSave}
             initialEntry={editing}
             onCancelEdit={() => setEditing(undefined)}
+            location={location}
           />
         )}
         {tab === "import" && <ImportPanel existingEntries={entries} onImport={handleImport} />}
@@ -88,7 +107,12 @@ export default function App() {
           <RegressionPanel entries={entries} settings={settings} onSettingsChange={handleSettingsChange} />
         )}
         {tab === "order" && (
-          <OrderSuggestionPanel entries={entries} settings={settings} onSettingsChange={handleSettingsChange} />
+          <OrderSuggestionPanel
+            entries={entries}
+            settings={settings}
+            onSettingsChange={handleSettingsChange}
+            location={location}
+          />
         )}
       </main>
     </div>

@@ -1,8 +1,10 @@
 import { defaultAnalysisSettings } from "../types";
 import type { AnalysisSettings, DailyEntry } from "../types";
+import type { Location } from "./weather";
 
 const ENTRIES_KEY = "bunseki-tool:entries";
 const SETTINGS_KEY = "bunseki-tool:settings";
+const LOCATION_KEY = "bunseki-tool:location";
 
 export function loadEntries(): DailyEntry[] {
   try {
@@ -79,4 +81,17 @@ export function loadSettings(): AnalysisSettings {
 
 export function saveSettings(settings: AnalysisSettings): void {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+}
+
+export function loadLocation(): Location | null {
+  try {
+    const raw = localStorage.getItem(LOCATION_KEY);
+    return raw ? (JSON.parse(raw) as Location) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveLocation(location: Location): void {
+  localStorage.setItem(LOCATION_KEY, JSON.stringify(location));
 }

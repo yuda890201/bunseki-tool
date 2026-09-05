@@ -4,14 +4,17 @@ import type { AnalysisSettings, Category, DailyEntry } from "../types";
 import { formatDateJP, tomorrowStr } from "../lib/date";
 import { formatYen } from "../lib/format";
 import { suggestOrder } from "../lib/forecast";
+import type { Location } from "../lib/weather";
+import AutoFetchWeatherButton from "./AutoFetchWeatherButton";
 
 interface Props {
   entries: DailyEntry[];
   settings: AnalysisSettings;
   onSettingsChange: (settings: AnalysisSettings) => void;
+  location: Location | null;
 }
 
-export default function OrderSuggestionPanel({ entries, settings, onSettingsChange }: Props) {
+export default function OrderSuggestionPanel({ entries, settings, onSettingsChange, location }: Props) {
   const [date, setDate] = useState(tomorrowStr());
   const [temperatureLow, setTemperatureLow] = useState<number | null>(null);
   const [temperatureHigh, setTemperatureHigh] = useState<number | null>(null);
@@ -108,6 +111,18 @@ export default function OrderSuggestionPanel({ entries, settings, onSettingsChan
           </label>
         )}
       </div>
+
+      {(settings.useTemperature || settings.useWeather) && (
+        <AutoFetchWeatherButton
+          location={location}
+          date={date}
+          onFetched={(w) => {
+            if (w.temperatureLow !== null) setTemperatureLow(w.temperatureLow);
+            if (w.temperatureHigh !== null) setTemperatureHigh(w.temperatureHigh);
+            if (w.weather) setWeather(w.weather);
+          }}
+        />
+      )}
 
       {entries.length === 0 ? (
         <p className="warning">実績データがありません。まず「入力」タブから登録してください。</p>
