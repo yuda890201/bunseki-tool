@@ -20,3 +20,12 @@ npm run dev
 ```
 
 `npm run build` で本番用ビルドを作成できます。
+
+## CI/CD
+
+- `.github/workflows/ci.yml`: `main` への push / PR で型チェック・lint・ビルドを自動実行します。
+- `.github/workflows/deploy.yml`: `main` に push されるたびに GitHub Pages へ自動デプロイします。
+
+デプロイを有効にするには、リポジトリの Settings → Pages → Source を「GitHub Actions」に設定してください(初回のみ)。
+
+今後の開発フロー: 変更用ブランチを作成 → PR を `main` に対して作成(CI が自動実行) → マージ → `main` への push をトリガーに自動デプロイ、という流れを想定しています。
