@@ -23,9 +23,10 @@ export default function DataTable({ entries, onEdit, onDelete }: Props) {
         <thead>
           <tr>
             <th rowSpan={2}>日付</th>
-            <th rowSpan={2}>気温</th>
+            <th rowSpan={2}>気温(低/高)</th>
             <th rowSpan={2}>天気</th>
-            <th rowSpan={2}>催事</th>
+            <th rowSpan={2}>セール</th>
+            <th rowSpan={2}>祝日</th>
             {CATEGORIES.map((cat) => (
               <th key={cat} colSpan={3}>
                 {cat}
@@ -52,9 +53,12 @@ export default function DataTable({ entries, onEdit, onDelete }: Props) {
             return (
               <tr key={entry.date}>
                 <td>{formatDateJP(entry.date)}</td>
-                <td>{entry.temperature ?? "-"}</td>
+                <td>
+                  {entry.temperatureLow ?? "-"}/{entry.temperatureHigh ?? "-"}
+                </td>
                 <td>{entry.weather || "-"}</td>
-                <td>{entry.event ? "○" : ""}</td>
+                <td>{entry.saleCategory || "-"}</td>
+                <td>{entry.holiday ? "○" : ""}</td>
                 {CATEGORIES.map((cat) => {
                   const item = entry.items[cat];
                   const rate =

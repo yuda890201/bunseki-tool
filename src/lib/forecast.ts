@@ -1,14 +1,9 @@
 import { buildDesignMatrix, buildForecastRow, targetValues, withIntercept } from "./features";
 import { runOLS } from "./regression";
 import { weekdayIndex } from "./date";
-import type { AnalysisSettings, Category, DailyEntry, Weather } from "../types";
+import type { AnalysisSettings, Category, DailyEntry, DayContext } from "../types";
 
-export interface OrderInput {
-  date: string;
-  temperature: number | null;
-  weather: Weather;
-  event: boolean;
-}
+export type OrderInput = DayContext & { date: string };
 
 export interface CategoryForecast {
   category: Category;
@@ -47,7 +42,7 @@ export function forecastCategory(
     };
   }
 
-  const design = buildDesignMatrix(entries, settings);
+  const design = buildDesignMatrix(entries, settings, category);
   const k = design.featureNames.length + 1; // + intercept
 
   if (design.usedEntries.length >= Math.max(MIN_ROWS_FOR_REGRESSION, k + 3)) {
@@ -56,7 +51,7 @@ export function forecastCategory(
       const X = withIntercept(design.rows);
       const result = runOLS(X, y, ["切片", ...design.featureNames]);
       const minDate = design.usedEntries[0].date;
-      const forecastRow = buildForecastRow(settings, input, minDate);
+      const forecastRow = buildForecastRow(settings, input, minDate, category);
       const predicted = [1, ...forecastRow].reduce(
         (sum, val, i) => sum + val * result.coefficients[i],
         0

@@ -26,7 +26,10 @@ export default function RegressionPanel({ entries, settings, onSettingsChange }:
   const [category, setCategory] = useState<Category | "合計">("合計");
   const [kind, setKind] = useState<TargetKind>("salesAmount");
 
-  const design = useMemo(() => buildDesignMatrix(entries, settings), [entries, settings]);
+  const design = useMemo(
+    () => buildDesignMatrix(entries, settings, category),
+    [entries, settings, category]
+  );
 
   const result = useMemo(() => {
     if (design.usedEntries.length === 0) return null;
@@ -56,7 +59,7 @@ export default function RegressionPanel({ entries, settings, onSettingsChange }:
     <div className="card">
       <h2>重回帰分析</h2>
       <p className="muted">
-        曜日・気温・天気・催事の有無などを説明変数として、売上金額(または廃棄金額)への影響を分析します。
+        曜日・気温・天気・セールの有無などを説明変数として、売上金額(または廃棄金額)への影響を分析します。
       </p>
 
       <div className="field-row">
@@ -84,15 +87,19 @@ export default function RegressionPanel({ entries, settings, onSettingsChange }:
         <legend>説明変数(曜日は常に使用)</legend>
         <label className="checkbox-label">
           <input type="checkbox" checked={settings.useTemperature} onChange={() => toggle("useTemperature")} />
-          気温
+          気温(最低・最高の平均)
         </label>
         <label className="checkbox-label">
           <input type="checkbox" checked={settings.useWeather} onChange={() => toggle("useWeather")} />
           天気
         </label>
         <label className="checkbox-label">
-          <input type="checkbox" checked={settings.useEvent} onChange={() => toggle("useEvent")} />
-          特売・催事
+          <input type="checkbox" checked={settings.useSale} onChange={() => toggle("useSale")} />
+          セール
+        </label>
+        <label className="checkbox-label">
+          <input type="checkbox" checked={settings.useHoliday} onChange={() => toggle("useHoliday")} />
+          祝日
         </label>
         <label className="checkbox-label">
           <input type="checkbox" checked={settings.useTrend} onChange={() => toggle("useTrend")} />

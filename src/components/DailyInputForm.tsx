@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { CATEGORIES, WEATHER_OPTIONS, createEmptyEntry } from "../types";
-import type { Category, DailyEntry, Weather } from "../types";
+import { CATEGORIES, WEATHER_PRESETS, createEmptyEntry } from "../types";
+import type { Category, DailyEntry } from "../types";
 import { formatDateJP, todayStr } from "../lib/date";
 import { formatYen } from "../lib/format";
 
@@ -55,29 +55,53 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
           <input type="text" value={formatDateJP(entry.date).split("(")[1]?.replace(")", "") ?? ""} disabled />
         </label>
         <label>
-          気温(℃)
+          最低気温(℃)
           <input
             type="number"
             step="0.1"
-            value={entry.temperature ?? ""}
+            value={entry.temperatureLow ?? ""}
             onChange={(e) =>
               setEntry((prev) => ({
                 ...prev,
-                temperature: e.target.value === "" ? null : Number(e.target.value),
+                temperatureLow: e.target.value === "" ? null : Number(e.target.value),
+              }))
+            }
+          />
+        </label>
+        <label>
+          最高気温(℃)
+          <input
+            type="number"
+            step="0.1"
+            value={entry.temperatureHigh ?? ""}
+            onChange={(e) =>
+              setEntry((prev) => ({
+                ...prev,
+                temperatureHigh: e.target.value === "" ? null : Number(e.target.value),
               }))
             }
           />
         </label>
         <label>
           天気
-          <select
+          <input
+            type="text"
+            list="weather-presets"
             value={entry.weather}
-            onChange={(e) => setEntry((prev) => ({ ...prev, weather: e.target.value as Weather }))}
+            placeholder="例: 晴れ/くもり"
+            onChange={(e) => setEntry((prev) => ({ ...prev, weather: e.target.value }))}
+          />
+        </label>
+        <label>
+          セール対象カテゴリ
+          <select
+            value={entry.saleCategory}
+            onChange={(e) => setEntry((prev) => ({ ...prev, saleCategory: e.target.value as Category | "" }))}
           >
-            <option value="">未選択</option>
-            {WEATHER_OPTIONS.map((w) => (
-              <option key={w} value={w}>
-                {w}
+            <option value="">なし</option>
+            {CATEGORIES.map((c) => (
+              <option key={c} value={c}>
+                {c}
               </option>
             ))}
           </select>
@@ -85,12 +109,17 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
         <label className="checkbox-label">
           <input
             type="checkbox"
-            checked={entry.event}
-            onChange={(e) => setEntry((prev) => ({ ...prev, event: e.target.checked }))}
+            checked={entry.holiday}
+            onChange={(e) => setEntry((prev) => ({ ...prev, holiday: e.target.checked }))}
           />
-          特売・催事あり
+          祝日
         </label>
       </div>
+      <datalist id="weather-presets">
+        {WEATHER_PRESETS.map((w) => (
+          <option key={w} value={w} />
+        ))}
+      </datalist>
 
       <table className="input-table">
         <thead>

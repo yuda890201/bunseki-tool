@@ -10,8 +10,16 @@ export const CATEGORIES = [
 
 export type Category = (typeof CATEGORIES)[number];
 
-export const WEATHER_OPTIONS = ["晴れ", "曇り", "雨", "雪"] as const;
-export type Weather = (typeof WEATHER_OPTIONS)[number] | "";
+// よく使われる組み合わせを候補として提示するためのプリセット。自由入力も可能。
+export const WEATHER_PRESETS = [
+  "晴れ",
+  "くもり",
+  "雨",
+  "雪",
+  "晴れ/くもり",
+  "晴れ/雨",
+  "くもり/雨",
+] as const;
 
 export interface ItemPerformance {
   salesAmount: number; // 売上金額(円)
@@ -20,11 +28,17 @@ export interface ItemPerformance {
 
 export type ItemPerformanceMap = Record<Category, ItemPerformance>;
 
-export interface DailyEntry {
+// 実績データと発注提案フォームの両方で使う、日付に紐づく共通の条件項目。
+export interface DayContext {
+  weather: string; // 自由入力(例: "晴れ", "晴れ/雨")
+  temperatureLow: number | null; // 最低気温(℃)
+  temperatureHigh: number | null; // 最高気温(℃)
+  saleCategory: Category | ""; // その日セール対象だったカテゴリ(なければ空文字)
+  holiday: boolean; // 祝日フラグ
+}
+
+export interface DailyEntry extends DayContext {
   date: string; // YYYY-MM-DD, unique key
-  weather: Weather;
-  temperature: number | null; // 気温(℃)
-  event: boolean; // 特売・催事フラグ
   memo: string;
   items: ItemPerformanceMap;
 }
@@ -38,12 +52,20 @@ export function emptyItemMap(): ItemPerformanceMap {
   }, {} as ItemPerformanceMap);
 }
 
+export function emptyDayContext(): DayContext {
+  return {
+    weather: "",
+    temperatureLow: null,
+    temperatureHigh: null,
+    saleCategory: "",
+    holiday: false,
+  };
+}
+
 export function createEmptyEntry(date: string): DailyEntry {
   return {
     date,
-    weather: "",
-    temperature: null,
-    event: false,
+    ...emptyDayContext(),
     memo: "",
     items: emptyItemMap(),
   };
@@ -52,7 +74,8 @@ export function createEmptyEntry(date: string): DailyEntry {
 export interface AnalysisSettings {
   useTemperature: boolean;
   useWeather: boolean;
-  useEvent: boolean;
+  useSale: boolean;
+  useHoliday: boolean;
   useTrend: boolean;
   targetWasteRate: Record<Category, number>; // 0-1
 }
@@ -61,7 +84,8 @@ export function defaultAnalysisSettings(): AnalysisSettings {
   return {
     useTemperature: true,
     useWeather: true,
-    useEvent: true,
+    useSale: true,
+    useHoliday: false,
     useTrend: false,
     targetWasteRate: CATEGORIES.reduce((acc, cat) => {
       acc[cat] = 0.05;
