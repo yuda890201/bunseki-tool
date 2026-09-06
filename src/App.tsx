@@ -17,7 +17,6 @@ import DataTable from "./components/DataTable";
 import RegressionPanel from "./components/RegressionPanel";
 import OrderSuggestionPanel from "./components/OrderSuggestionPanel";
 import ImportPanel from "./components/ImportPanel";
-import LocationBar from "./components/LocationBar";
 import SpaceInvader from "./components/SpaceInvader";
 import { AnalysisIcon, ImportIcon, InputIcon, ListIcon, OrderIcon } from "./components/TabIcons";
 
@@ -80,7 +79,6 @@ export default function App() {
           <SpaceInvader size={30} className="magenta" />
         </div>
         <p className="muted">日々の販売・廃棄実績を記録し、重回帰分析と発注提案に活用します</p>
-        <LocationBar location={location} onChange={handleLocationChange} />
       </header>
 
       <main>
@@ -92,6 +90,7 @@ export default function App() {
             initialEntry={editing}
             onCancelEdit={() => setEditing(undefined)}
             location={location}
+            onLocationChange={handleLocationChange}
           />
         )}
         {tab === "import" && <ImportPanel existingEntries={entries} onImport={handleImport} />}

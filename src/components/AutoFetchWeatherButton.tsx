@@ -49,7 +49,7 @@ export default function AutoFetchWeatherButton({ location, date, onFetched }: Pr
 
   return (
     <div className="auto-fetch-row">
-      <button type="button" className="secondary" onClick={handleClick} disabled={loading || !date}>
+      <button type="button" className="button-highlight" onClick={handleClick} disabled={loading || !date}>
         {loading ? "取得中..." : "気温・天気・祝日を自動取得"}
       </button>
       {error && <span className="warning small">{error}</span>}

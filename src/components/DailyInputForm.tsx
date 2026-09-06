@@ -5,6 +5,7 @@ import { formatDateJP, todayStr } from "../lib/date";
 import { formatYen } from "../lib/format";
 import type { Location } from "../lib/weather";
 import AutoFetchWeatherButton from "./AutoFetchWeatherButton";
+import LocationBar from "./LocationBar";
 
 // 入力中は「未入力」と「0」を区別できるよう、金額はnull許容の下書き状態として扱う。
 // 保存時にnullを0へ変換してDailyEntryへ確定させる。
@@ -30,6 +31,7 @@ interface Props {
   initialEntry?: DailyEntry;
   onCancelEdit?: () => void;
   location: Location | null;
+  onLocationChange: (location: Location) => void;
 }
 
 const AMOUNT_INPUT_COUNT = CATEGORIES.length * 2;
@@ -40,7 +42,14 @@ function isTouchDevice(): boolean {
   return typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
 }
 
-export default function DailyInputForm({ existingDates, onSave, initialEntry, onCancelEdit, location }: Props) {
+export default function DailyInputForm({
+  existingDates,
+  onSave,
+  initialEntry,
+  onCancelEdit,
+  location,
+  onLocationChange,
+}: Props) {
   const [entry, setEntry] = useState<DraftEntry>(initialEntry ?? emptyDraftEntry(todayStr()));
   const amountTableRef = useRef<HTMLTableElement>(null);
   const [activeAmountIndex, setActiveAmountIndex] = useState<number | null>(null);
@@ -170,6 +179,75 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
         </label>
       </div>
 
+      <table className="input-table" ref={amountTableRef}>
+        <thead>
+          <tr>
+            <th>カテゴリ</th>
+            <th>売上金額(円)</th>
+            <th>廃棄金額(円)</th>
+            <th>廃棄率</th>
+          </tr>
+        </thead>
+        <tbody>
+          {CATEGORIES.map((cat, i) => {
+            const item = entry.items[cat];
+            const sales = item.salesAmount ?? 0;
+            const waste = item.wasteAmount ?? 0;
+            const rate = sales + waste > 0 ? waste / (sales + waste) : 0;
+            const salesIndex = i * 2;
+            const wasteIndex = i * 2 + 1;
+            return (
+              <tr key={cat}>
+                <td>{cat}</td>
+                <td>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    enterKeyHint={salesIndex === AMOUNT_INPUT_COUNT - 1 ? "done" : "next"}
+                    data-amount-index={salesIndex}
+                    placeholder="0"
+                    value={item.salesAmount ?? ""}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9]/g, "");
+                      updateItem(cat, "salesAmount", raw === "" ? null : Number(raw));
+                    }}
+                    onKeyDown={(e) => handleAmountKeyDown(e, salesIndex)}
+                    onFocus={() => handleAmountFocus(salesIndex)}
+                    onBlur={handleAmountBlur}
+                  />
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    enterKeyHint={wasteIndex === AMOUNT_INPUT_COUNT - 1 ? "done" : "next"}
+                    data-amount-index={wasteIndex}
+                    placeholder="0"
+                    value={item.wasteAmount ?? ""}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/[^0-9]/g, "");
+                      updateItem(cat, "wasteAmount", raw === "" ? null : Number(raw));
+                    }}
+                    onKeyDown={(e) => handleAmountKeyDown(e, wasteIndex)}
+                    onFocus={() => handleAmountFocus(wasteIndex)}
+                    onBlur={handleAmountBlur}
+                  />
+                </td>
+                <td className="muted">{(rate * 100).toFixed(1)}%</td>
+              </tr>
+            );
+          })}
+          <tr className="total-row">
+            <td>中食合計</td>
+            <td>{formatYen(totalSales)}</td>
+            <td>{formatYen(totalWaste)}</td>
+            <td>{(wasteRate * 100).toFixed(1)}%</td>
+          </tr>
+        </tbody>
+      </table>
+
       <AutoFetchWeatherButton
         location={location}
         date={entry.date}
@@ -185,7 +263,8 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
       />
 
       <details className="conditions-details">
-        <summary>天候・セール・祝日(毎回の入力は不要です)</summary>
+        <summary>地域・天候・セール・祝日(毎回の確認は不要です)</summary>
+        <LocationBar location={location} onChange={onLocationChange} />
         <div className="field-row">
           <div className="temp-pair">
             <label>
@@ -256,75 +335,6 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
           <option key={w} value={w} />
         ))}
       </datalist>
-
-      <table className="input-table" ref={amountTableRef}>
-        <thead>
-          <tr>
-            <th>カテゴリ</th>
-            <th>売上金額(円)</th>
-            <th>廃棄金額(円)</th>
-            <th>廃棄率</th>
-          </tr>
-        </thead>
-        <tbody>
-          {CATEGORIES.map((cat, i) => {
-            const item = entry.items[cat];
-            const sales = item.salesAmount ?? 0;
-            const waste = item.wasteAmount ?? 0;
-            const rate = sales + waste > 0 ? waste / (sales + waste) : 0;
-            const salesIndex = i * 2;
-            const wasteIndex = i * 2 + 1;
-            return (
-              <tr key={cat}>
-                <td>{cat}</td>
-                <td>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    enterKeyHint={salesIndex === AMOUNT_INPUT_COUNT - 1 ? "done" : "next"}
-                    data-amount-index={salesIndex}
-                    placeholder="0"
-                    value={item.salesAmount ?? ""}
-                    onChange={(e) => {
-                      const raw = e.target.value.replace(/[^0-9]/g, "");
-                      updateItem(cat, "salesAmount", raw === "" ? null : Number(raw));
-                    }}
-                    onKeyDown={(e) => handleAmountKeyDown(e, salesIndex)}
-                    onFocus={() => handleAmountFocus(salesIndex)}
-                    onBlur={handleAmountBlur}
-                  />
-                </td>
-                <td>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    enterKeyHint={wasteIndex === AMOUNT_INPUT_COUNT - 1 ? "done" : "next"}
-                    data-amount-index={wasteIndex}
-                    placeholder="0"
-                    value={item.wasteAmount ?? ""}
-                    onChange={(e) => {
-                      const raw = e.target.value.replace(/[^0-9]/g, "");
-                      updateItem(cat, "wasteAmount", raw === "" ? null : Number(raw));
-                    }}
-                    onKeyDown={(e) => handleAmountKeyDown(e, wasteIndex)}
-                    onFocus={() => handleAmountFocus(wasteIndex)}
-                    onBlur={handleAmountBlur}
-                  />
-                </td>
-                <td className="muted">{(rate * 100).toFixed(1)}%</td>
-              </tr>
-            );
-          })}
-          <tr className="total-row">
-            <td>中食合計</td>
-            <td>{formatYen(totalSales)}</td>
-            <td>{formatYen(totalWaste)}</td>
-            <td>{(wasteRate * 100).toFixed(1)}%</td>
-          </tr>
-        </tbody>
-      </table>
 
       <label>
         メモ
