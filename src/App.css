@@ -19,7 +19,7 @@
 body {
   font-family: var(--mono);
   background-color: var(--bg);
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2MCcgaGVpZ2h0PSc2MCcgdmlld0JveD0nMCAwIDYwIDYwJz48ZyBmaWxsPSclMjMzOWZmMTQnIGZpbGwtb3BhY2l0eT0nMC4wNic+PHJlY3QgeD0nMjQnIHk9JzE2JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMzInIHk9JzE2JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjAnIHk9JzIwJyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjQnIHk9JzIwJyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjgnIHk9JzIwJyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMzInIHk9JzIwJyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMzYnIHk9JzIwJyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjAnIHk9JzI0JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjgnIHk9JzI0JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMzYnIHk9JzI0JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjAnIHk9JzI4JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjQnIHk9JzI4JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjgnIHk9JzI4JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMzInIHk9JzI4JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMzYnIHk9JzI4JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjAnIHk9JzMyJyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMzYnIHk9JzMyJyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PC9nPjwvc3ZnPg==");
+  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPSc2MCcgaGVpZ2h0PSc2MCcgdmlld0JveD0nMCAwIDYwIDYwJz48ZyBmaWxsPSclMjMzOWZmMTQnIGZpbGwtb3BhY2l0eT0nMC4wNic+PHJlY3QgeD0nMjgnIHk9JzE0JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjQnIHk9JzE4JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjgnIHk9JzE4JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMzInIHk9JzE4JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjAnIHk9JzIyJyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjQnIHk9JzIyJyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjgnIHk9JzIyJyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMzInIHk9JzIyJyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMzYnIHk9JzIyJyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMTYnIHk9JzI2JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjAnIHk9JzI2JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjQnIHk9JzI2JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMjgnIHk9JzI2JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMzInIHk9JzI2JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nMzYnIHk9JzI2JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PHJlY3QgeD0nNDAnIHk9JzI2JyB3aWR0aD0nNCcgaGVpZ2h0PSc0Jy8+PC9nPjwvc3ZnPg==");
   background-repeat: repeat;
 }
 
@@ -528,27 +528,27 @@ button:disabled {
   font-size: 0.95rem;
 }
 
-/* --- Space Invaders --- */
-.space-invader {
-  color: var(--accent-green);
-  filter: drop-shadow(0 0 4px currentColor);
-  animation: invader-pulse 2.4s ease-in-out infinite;
+/* --- ドット絵マスコット(お肉・おにぎり) --- */
+.pixel-mascot {
   flex-shrink: 0;
+  animation: mascot-pulse 2.4s ease-in-out infinite;
 }
 
-.space-invader.magenta {
-  color: var(--accent-magenta);
+.mascot-meat {
+  filter: drop-shadow(0 0 4px #ffb454);
+}
+
+.mascot-onigiri {
+  filter: drop-shadow(0 0 4px #fdf6e3);
   animation-delay: 1.2s;
 }
 
-@keyframes invader-pulse {
+@keyframes mascot-pulse {
   0%,
   100% {
     opacity: 0.85;
-    filter: drop-shadow(0 0 3px currentColor);
   }
   50% {
     opacity: 1;
-    filter: drop-shadow(0 0 8px currentColor);
   }
 }

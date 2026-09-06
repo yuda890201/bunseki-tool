@@ -17,7 +17,7 @@ import DataTable from "./components/DataTable";
 import RegressionPanel from "./components/RegressionPanel";
 import OrderSuggestionPanel from "./components/OrderSuggestionPanel";
 import ImportPanel from "./components/ImportPanel";
-import SpaceInvader from "./components/SpaceInvader";
+import { MeatSprite, OnigiriSprite } from "./components/PixelMascots";
 import { AnalysisIcon, ImportIcon, InputIcon, ListIcon, OrderIcon } from "./components/TabIcons";
 
 type Tab = "input" | "import" | "list" | "analysis" | "order";
@@ -72,11 +72,11 @@ export default function App() {
     <div className="app-shell">
       <header>
         <div className="title-row">
-          <SpaceInvader size={30} />
+          <MeatSprite size={30} />
           <h1>
             中食 実績分析ツール<span className="cursor-blink">_</span>
           </h1>
-          <SpaceInvader size={30} className="magenta" />
+          <OnigiriSprite size={30} />
         </div>
         <p className="muted">日々の販売・廃棄実績を記録し、重回帰分析と発注提案に活用します</p>
       </header>
