@@ -74,6 +74,18 @@ header h1 {
   border-radius: 8px;
 }
 
+/* 地点が設定済みのときは一行だけの最小表示にして、入力欄までの距離を縮める */
+.location-bar-collapsed {
+  margin-top: 0.35rem;
+  padding: 0;
+  background: none;
+  border: none;
+}
+
+.location-bar-collapsed p {
+  margin: 0;
+}
+
 .link-button {
   background: none;
   border: none;

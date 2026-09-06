@@ -70,6 +70,13 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
     el?.select();
   }
 
+  // 開いてすぐ入力に取りかかれるよう、新規入力時は最初の金額欄に自動でフォーカスする
+  // (既存データの編集時は、確認が先になることが多いので自動フォーカスしない)。
+  useEffect(() => {
+    if (!isEditing) focusAmountIndex(0);
+    // oxlint-disable-next-line react-hooks/exhaustive-deps -- 初回マウント時のみ実行したい
+  }, []);
+
   function handleAmountFocus(index: number) {
     if (blurTimer.current !== null) {
       window.clearTimeout(blurTimer.current);

@@ -40,10 +40,10 @@ export default function LocationBar({ location, onChange }: Props) {
   }
 
   return (
-    <div className="location-bar">
+    <div className={open ? "location-bar" : "location-bar location-bar-collapsed"}>
       {!open ? (
         <p className="muted small">
-          気温・天気の自動取得地点: <strong>{location?.name ?? "未設定"}</strong>{" "}
+          地点: <strong>{location?.name ?? "未設定"}</strong>{" "}
           <button type="button" className="link-button" onClick={() => setOpen(true)}>
             変更
           </button>
