@@ -52,64 +52,6 @@ export default function OrderSuggestionPanel({ entries, settings, onSettingsChan
           曜日
           <input type="text" value={formatDateJP(date).split("(")[1]?.replace(")", "") ?? ""} disabled />
         </label>
-        {settings.useTemperature && (
-          <>
-            <label>
-              予想最低気温(℃)
-              <input
-                type="number"
-                step="0.1"
-                value={temperatureLow ?? ""}
-                onChange={(e) => setTemperatureLow(e.target.value === "" ? null : Number(e.target.value))}
-              />
-            </label>
-            <label>
-              予想最高気温(℃)
-              <input
-                type="number"
-                step="0.1"
-                value={temperatureHigh ?? ""}
-                onChange={(e) => setTemperatureHigh(e.target.value === "" ? null : Number(e.target.value))}
-              />
-            </label>
-          </>
-        )}
-        {settings.useWeather && (
-          <label>
-            予想天気
-            <input
-              type="text"
-              list="weather-presets-order"
-              value={weather}
-              placeholder="例: 晴れ/くもり"
-              onChange={(e) => setWeather(e.target.value)}
-            />
-            <datalist id="weather-presets-order">
-              {WEATHER_PRESETS.map((w) => (
-                <option key={w} value={w} />
-              ))}
-            </datalist>
-          </label>
-        )}
-        {settings.useSale && (
-          <label>
-            セール対象カテゴリ
-            <select value={saleCategory} onChange={(e) => setSaleCategory(e.target.value as Category | "")}>
-              <option value="">なし</option>
-              {CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        {settings.useHoliday && (
-          <label className="checkbox-label">
-            <input type="checkbox" checked={holiday} onChange={(e) => setHoliday(e.target.checked)} />
-            祝日
-          </label>
-        )}
       </div>
 
       {(settings.useTemperature || settings.useWeather) && (
@@ -120,8 +62,75 @@ export default function OrderSuggestionPanel({ entries, settings, onSettingsChan
             if (w.temperatureLow !== null) setTemperatureLow(w.temperatureLow);
             if (w.temperatureHigh !== null) setTemperatureHigh(w.temperatureHigh);
             if (w.weather) setWeather(w.weather);
+            if (w.holiday !== null) setHoliday(w.holiday);
           }}
         />
+      )}
+
+      {(settings.useTemperature || settings.useWeather || settings.useSale || settings.useHoliday) && (
+        <details className="conditions-details">
+          <summary>予想条件を確認・編集</summary>
+          <div className="field-row">
+            {settings.useTemperature && (
+              <div className="temp-pair">
+                <label>
+                  予想最低気温(℃)
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={temperatureLow ?? ""}
+                    onChange={(e) => setTemperatureLow(e.target.value === "" ? null : Number(e.target.value))}
+                  />
+                </label>
+                <label>
+                  予想最高気温(℃)
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={temperatureHigh ?? ""}
+                    onChange={(e) => setTemperatureHigh(e.target.value === "" ? null : Number(e.target.value))}
+                  />
+                </label>
+              </div>
+            )}
+            {settings.useWeather && (
+              <label>
+                予想天気
+                <input
+                  type="text"
+                  list="weather-presets-order"
+                  value={weather}
+                  placeholder="例: 晴れ/くもり"
+                  onChange={(e) => setWeather(e.target.value)}
+                />
+                <datalist id="weather-presets-order">
+                  {WEATHER_PRESETS.map((w) => (
+                    <option key={w} value={w} />
+                  ))}
+                </datalist>
+              </label>
+            )}
+            {settings.useSale && (
+              <label>
+                セール対象カテゴリ
+                <select value={saleCategory} onChange={(e) => setSaleCategory(e.target.value as Category | "")}>
+                  <option value="">なし</option>
+                  {CATEGORIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {settings.useHoliday && (
+              <label className="checkbox-label">
+                <input type="checkbox" checked={holiday} onChange={(e) => setHoliday(e.target.checked)} />
+                祝日
+              </label>
+            )}
+          </div>
+        </details>
       )}
 
       {entries.length === 0 ? (

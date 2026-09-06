@@ -19,15 +19,16 @@ import OrderSuggestionPanel from "./components/OrderSuggestionPanel";
 import ImportPanel from "./components/ImportPanel";
 import LocationBar from "./components/LocationBar";
 import SpaceInvader from "./components/SpaceInvader";
+import { AnalysisIcon, ImportIcon, InputIcon, ListIcon, OrderIcon } from "./components/TabIcons";
 
 type Tab = "input" | "import" | "list" | "analysis" | "order";
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "input", label: "入力" },
-  { id: "import", label: "インポート" },
-  { id: "list", label: "一覧" },
-  { id: "analysis", label: "分析" },
-  { id: "order", label: "発注提案" },
+const TABS: { id: Tab; label: string; Icon: (props: { size?: number }) => React.JSX.Element }[] = [
+  { id: "input", label: "入力", Icon: InputIcon },
+  { id: "import", label: "インポート", Icon: ImportIcon },
+  { id: "list", label: "一覧", Icon: ListIcon },
+  { id: "analysis", label: "分析", Icon: AnalysisIcon },
+  { id: "order", label: "発注提案", Icon: OrderIcon },
 ];
 
 export default function App() {
@@ -82,21 +83,6 @@ export default function App() {
         <LocationBar location={location} onChange={handleLocationChange} />
       </header>
 
-      <nav className="tabs">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            className={t.id === tab ? "tab active" : "tab"}
-            onClick={() => {
-              if (t.id !== "input") setEditing(undefined);
-              setTab(t.id);
-            }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
-
       <main>
         {tab === "input" && (
           <DailyInputForm
@@ -122,6 +108,24 @@ export default function App() {
           />
         )}
       </main>
+
+      <nav className="bottom-nav">
+        {TABS.map(({ id, label, Icon }) => (
+          <button
+            key={id}
+            type="button"
+            className={id === tab ? "bottom-nav-item active" : "bottom-nav-item"}
+            title={label}
+            aria-label={label}
+            onClick={() => {
+              if (id !== "input") setEditing(undefined);
+              setTab(id);
+            }}
+          >
+            <Icon size={22} />
+          </button>
+        ))}
+      </nav>
     </div>
   );
 }

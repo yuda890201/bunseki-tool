@@ -1,11 +1,16 @@
 import { useState } from "react";
 import type { DailyWeather, Location } from "../lib/weather";
 import { fetchDailyWeather } from "../lib/weather";
+import { isJapaneseHoliday } from "../lib/holidays";
+
+export interface FetchedConditions extends DailyWeather {
+  holiday: boolean | null; // 取得できなかった場合はnull(既存の値を変更しない)
+}
 
 interface Props {
   location: Location | null;
   date: string;
-  onFetched: (weather: DailyWeather) => void;
+  onFetched: (conditions: FetchedConditions) => void;
 }
 
 export default function AutoFetchWeatherButton({ location, date, onFetched }: Props) {
@@ -20,9 +25,23 @@ export default function AutoFetchWeatherButton({ location, date, onFetched }: Pr
     setLoading(true);
     setError("");
     try {
-      onFetched(await fetchDailyWeather(location, date));
-    } catch {
-      setError("取得に失敗しました");
+      const [weatherResult, holidayResult] = await Promise.allSettled([
+        fetchDailyWeather(location, date),
+        isJapaneseHoliday(date),
+      ]);
+
+      if (weatherResult.status === "rejected") {
+        setError("取得に失敗しました");
+        return;
+      }
+
+      onFetched({
+        ...weatherResult.value,
+        holiday: holidayResult.status === "fulfilled" ? holidayResult.value : null,
+      });
+      if (holidayResult.status === "rejected") {
+        setError("天気は取得できましたが、祝日データの取得に失敗しました");
+      }
     } finally {
       setLoading(false);
     }
@@ -31,7 +50,7 @@ export default function AutoFetchWeatherButton({ location, date, onFetched }: Pr
   return (
     <div className="auto-fetch-row">
       <button type="button" className="secondary" onClick={handleClick} disabled={loading || !date}>
-        {loading ? "取得中..." : "気温・天気を自動取得"}
+        {loading ? "取得中..." : "気温・天気・祝日を自動取得"}
       </button>
       {error && <span className="warning small">{error}</span>}
     </div>

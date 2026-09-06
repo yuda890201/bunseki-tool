@@ -34,12 +34,19 @@ interface Props {
 
 const AMOUNT_INPUT_COUNT = CATEGORIES.length * 2;
 
+// タッチ操作の端末だけ、自動フォーカス&テンキー用の次へ/前へバーを有効にする。
+// マウス操作のPCでは仮想キーボードが出ないため、バーがボトムナビを覆ってしまうだけになる。
+function isTouchDevice(): boolean {
+  return typeof window !== "undefined" && window.matchMedia?.("(pointer: coarse)").matches;
+}
+
 export default function DailyInputForm({ existingDates, onSave, initialEntry, onCancelEdit, location }: Props) {
   const [entry, setEntry] = useState<DraftEntry>(initialEntry ?? emptyDraftEntry(todayStr()));
   const amountTableRef = useRef<HTMLTableElement>(null);
   const [activeAmountIndex, setActiveAmountIndex] = useState<number | null>(null);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
   const blurTimer = useRef<number | null>(null);
+  const touchDevice = useRef(isTouchDevice()).current;
 
   const isEditing = !!initialEntry;
   const isDuplicate = !isEditing && existingDates.includes(entry.date);
@@ -73,7 +80,7 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
   // 開いてすぐ入力に取りかかれるよう、新規入力時は最初の金額欄に自動でフォーカスする
   // (既存データの編集時は、確認が先になることが多いので自動フォーカスしない)。
   useEffect(() => {
-    if (!isEditing) focusAmountIndex(0);
+    if (!isEditing && touchDevice) focusAmountIndex(0);
     // oxlint-disable-next-line react-hooks/exhaustive-deps -- 初回マウント時のみ実行したい
   }, []);
 
@@ -161,72 +168,7 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
           曜日
           <input type="text" value={formatDateJP(entry.date).split("(")[1]?.replace(")", "") ?? ""} disabled />
         </label>
-        <label>
-          最低気温(℃)
-          <input
-            type="number"
-            step="0.1"
-            value={entry.temperatureLow ?? ""}
-            onChange={(e) =>
-              setEntry((prev) => ({
-                ...prev,
-                temperatureLow: e.target.value === "" ? null : Number(e.target.value),
-              }))
-            }
-          />
-        </label>
-        <label>
-          最高気温(℃)
-          <input
-            type="number"
-            step="0.1"
-            value={entry.temperatureHigh ?? ""}
-            onChange={(e) =>
-              setEntry((prev) => ({
-                ...prev,
-                temperatureHigh: e.target.value === "" ? null : Number(e.target.value),
-              }))
-            }
-          />
-        </label>
-        <label>
-          天気
-          <input
-            type="text"
-            list="weather-presets"
-            value={entry.weather}
-            placeholder="例: 晴れ/くもり"
-            onChange={(e) => setEntry((prev) => ({ ...prev, weather: e.target.value }))}
-          />
-        </label>
-        <label>
-          セール対象カテゴリ
-          <select
-            value={entry.saleCategory}
-            onChange={(e) => setEntry((prev) => ({ ...prev, saleCategory: e.target.value as Category | "" }))}
-          >
-            <option value="">なし</option>
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={entry.holiday}
-            onChange={(e) => setEntry((prev) => ({ ...prev, holiday: e.target.checked }))}
-          />
-          祝日
-        </label>
       </div>
-      <datalist id="weather-presets">
-        {WEATHER_PRESETS.map((w) => (
-          <option key={w} value={w} />
-        ))}
-      </datalist>
 
       <AutoFetchWeatherButton
         location={location}
@@ -237,9 +179,83 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
             temperatureLow: w.temperatureLow,
             temperatureHigh: w.temperatureHigh,
             weather: w.weather || prev.weather,
+            holiday: w.holiday ?? prev.holiday,
           }))
         }
       />
+
+      <details className="conditions-details">
+        <summary>天候・セール・祝日(毎回の入力は不要です)</summary>
+        <div className="field-row">
+          <div className="temp-pair">
+            <label>
+              最低気温(℃)
+              <input
+                type="number"
+                step="0.1"
+                value={entry.temperatureLow ?? ""}
+                onChange={(e) =>
+                  setEntry((prev) => ({
+                    ...prev,
+                    temperatureLow: e.target.value === "" ? null : Number(e.target.value),
+                  }))
+                }
+              />
+            </label>
+            <label>
+              最高気温(℃)
+              <input
+                type="number"
+                step="0.1"
+                value={entry.temperatureHigh ?? ""}
+                onChange={(e) =>
+                  setEntry((prev) => ({
+                    ...prev,
+                    temperatureHigh: e.target.value === "" ? null : Number(e.target.value),
+                  }))
+                }
+              />
+            </label>
+          </div>
+          <label>
+            天気
+            <input
+              type="text"
+              list="weather-presets"
+              value={entry.weather}
+              placeholder="例: 晴れ/くもり"
+              onChange={(e) => setEntry((prev) => ({ ...prev, weather: e.target.value }))}
+            />
+          </label>
+          <label>
+            セール対象カテゴリ
+            <select
+              value={entry.saleCategory}
+              onChange={(e) => setEntry((prev) => ({ ...prev, saleCategory: e.target.value as Category | "" }))}
+            >
+              <option value="">なし</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={entry.holiday}
+              onChange={(e) => setEntry((prev) => ({ ...prev, holiday: e.target.checked }))}
+            />
+            祝日
+          </label>
+        </div>
+      </details>
+      <datalist id="weather-presets">
+        {WEATHER_PRESETS.map((w) => (
+          <option key={w} value={w} />
+        ))}
+      </datalist>
 
       <table className="input-table" ref={amountTableRef}>
         <thead>
@@ -333,7 +349,7 @@ export default function DailyInputForm({ existingDates, onSave, initialEntry, on
         )}
       </div>
 
-      {activeAmountIndex !== null && (
+      {touchDevice && activeAmountIndex !== null && (
         <div className="keypad-toolbar" style={{ bottom: keyboardOffset }}>
           <button
             type="button"
